@@ -206,7 +206,7 @@ var app = http.createServer(function(request,response){
         response.end(html);
       });
 
-    } else if(pathname == "/login_process"){ // 로그인 처리 
+    } else if(pathname == "/login_process"){ // 로그인 처리 - 쿠키생성
 
       var body = '';
       request.on('data', function(data){
@@ -232,6 +232,26 @@ var app = http.createServer(function(request,response){
             response.end('login failed !');
           }
 
+      });
+
+    } else if(pathname == "/logout_process"){ // 로그아웃 처리 - 쿠키삭제 
+
+      var body = '';
+      request.on('data', function(data){
+          body = body + data;
+      });
+      request.on('end', function(){
+          var post = qs.parse(body);
+
+            response.writeHead(302, {
+              'Set-Cookie':[
+                `email=; Max-Age=0`, 
+                `password=; Max-Age=0`,
+                `nickname=; Max-Age=0`  
+              ],
+              Location: `/`
+            });
+            response.end();
       });
 
     } else {
