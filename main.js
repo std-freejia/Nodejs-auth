@@ -8,7 +8,7 @@ var sanitizeHtml = require('sanitize-html');
 var cookie = require('cookie');
 
 
-// 로그인 처리 
+// 로그인 처리  - 쿠키 정보 가져오기 
 function authIsOwner(request, response){
   var isOwner = false;
   var cookies = {}; // 빈 객체 
@@ -26,9 +26,18 @@ function authIsOwner(request, response){
   return isOwner;
 }
 
-// 로그아웃 처리 함수 
-function authStatusUI(){
-  
+// 로그아웃 처리 함수  ( 로그인, 로그아웃 상태에 따라 보여줄 버튼이 다르다. )
+function authStatusUI(request, response){
+      // isOwner : 로그인 성공/실패 값
+      // var isOwner = authIsOwner(request, response);
+      var authStatusUI =  '<a href="/login">login</a>';
+      
+      if(authIsOwner(request, response)){ // 로그인 성공 시, '로그아웃' 버튼 보이도록. 
+        authStatusUI =  '<a href="/logout_process">logout!</a>';
+      }
+      // console.log('isOwner:', isOwner);
+      
+      return authStatusUI;
 }
 
 
@@ -37,6 +46,7 @@ var app = http.createServer(function(request,response){
     var queryData = url.parse(_url, true).query;
     var pathname = url.parse(_url, true).pathname;
 
+    /*
     // isOwner : 로그인 성공/실패 값
     var isOwner = authIsOwner(request, response);
     var authStatusUI =  '<a href="/login">login</a>';
@@ -45,6 +55,7 @@ var app = http.createServer(function(request,response){
       authStatusUI =  '<a href="/logout_process">logout!</a>';
     }
     console.log('isOwner:', isOwner);
+*/
 
     if(pathname === '/'){
       if(queryData.id === undefined){
@@ -55,7 +66,7 @@ var app = http.createServer(function(request,response){
           var html = template.HTML(title, list,
             `<h2>${title}</h2>${description}`,
             `<a href="/create">create</a>`,
-            authStatusUI
+            authStatusUI(request,response)
           );
           response.writeHead(200);
           response.end(html);
@@ -77,7 +88,9 @@ var app = http.createServer(function(request,response){
                 <form action="delete_process" method="post">
                   <input type="hidden" name="id" value="${sanitizedTitle}">
                   <input type="submit" value="delete">
-                </form>`
+                </form>
+                `,
+                authStatusUI(request, response)
             );
             response.writeHead(200);
             response.end(html);
@@ -98,7 +111,7 @@ var app = http.createServer(function(request,response){
               <input type="submit">
             </p>
           </form>
-        `, '');
+        `, '', authStatusUI(request, response));
         response.writeHead(200);
         response.end(html);
       });
@@ -135,7 +148,8 @@ var app = http.createServer(function(request,response){
               </p>
             </form>
             `,
-            `<a href="/create">create</a> <a href="/update?id=${title}">update</a>`
+            `<a href="/create">create</a> <a href="/update?id=${title}">update</a>`,
+            authStatusUI(request, response)
           );
           response.writeHead(200);
           response.end(html);
