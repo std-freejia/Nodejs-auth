@@ -10,9 +10,10 @@ var app = http.createServer(function(request,response){
     var _url = request.url;
     var queryData = url.parse(_url, true).query;
     var pathname = url.parse(_url, true).pathname;
+
     if(pathname === '/'){
       if(queryData.id === undefined){
-        fs.readdir('./data', function(error, filelist){
+        fs.readdir('./data', function(error, filelist){  // home 
           var title = 'Welcome';
           var description = 'Hello, Node.js';
           var list = template.list(filelist);
@@ -24,7 +25,7 @@ var app = http.createServer(function(request,response){
           response.end(html);
         });
       } else {
-        fs.readdir('./data', function(error, filelist){
+        fs.readdir('./data', function(error, filelist){  // 글 상세보기 
           var filteredId = path.parse(queryData.id).base;
           fs.readFile(`data/${filteredId}`, 'utf8', function(err, description){
             var title = queryData.id;
@@ -47,7 +48,7 @@ var app = http.createServer(function(request,response){
           });
         });
       }
-    } else if(pathname === '/create'){
+    } else if(pathname === '/create'){  // 글 쓰기 화면 
       fs.readdir('./data', function(error, filelist){
         var title = 'WEB - create';
         var list = template.list(filelist);
@@ -65,7 +66,7 @@ var app = http.createServer(function(request,response){
         response.writeHead(200);
         response.end(html);
       });
-    } else if(pathname === '/create_process'){
+    } else if(pathname === '/create_process'){  // 글 생성 처리 
       var body = '';
       request.on('data', function(data){
           body = body + data;
@@ -79,7 +80,7 @@ var app = http.createServer(function(request,response){
             response.end();
           })
       });
-    } else if(pathname === '/update'){
+    } else if(pathname === '/update'){  // 수정 
       fs.readdir('./data', function(error, filelist){
         var filteredId = path.parse(queryData.id).base;
         fs.readFile(`data/${filteredId}`, 'utf8', function(err, description){
@@ -104,7 +105,7 @@ var app = http.createServer(function(request,response){
           response.end(html);
         });
       });
-    } else if(pathname === '/update_process'){
+    } else if(pathname === '/update_process'){  // 수정 처리 
       var body = '';
       request.on('data', function(data){
           body = body + data;
@@ -121,7 +122,7 @@ var app = http.createServer(function(request,response){
             })
           });
       });
-    } else if(pathname === '/delete_process'){
+    } else if(pathname === '/delete_process'){  // 삭제 처리 
       var body = '';
       request.on('data', function(data){
           body = body + data;
@@ -135,6 +136,54 @@ var app = http.createServer(function(request,response){
             response.end();
           })
       });
+
+    } else if(pathname == '/login'){  // 로그인 폼 
+
+      fs.readdir('./data', function(error, filelist){
+        var title = 'Login';
+        var list = template.list(filelist);
+        var html = template.HTML(title, list,
+          `
+          <form action="/login_process", method="post">
+            <p><input type="text" name="email" placeholder="email"></p>
+            <p><input type="password" name="password" placeholder="password"></p>
+            <p><input type="submit"></p>
+          </form>`,
+          `<a href="/create">create</a>`
+        );
+
+        response.writeHead(200);
+        response.end(html);
+      });
+
+    } else if(pathname == "/login_process"){ // 로그인 처리 
+
+      var body = '';
+      request.on('data', function(data){
+          body = body + data;
+      });
+      request.on('end', function(){
+          var post = qs.parse(body);
+
+          if(post.email === '123@gmail.com' && post.password === '123' ) {
+            console.log('login success')
+            response.writeHead(302, {
+              'Set-Cookie':[
+                `email=${post.email}`, 
+                `password=${post.password}`,
+                `nickname=brocolia`  
+              ],
+              Location: `/`
+            })
+            response.end();
+          }else{
+            // 로그인 실패 
+            console.log('login failed');
+            response.end('login failed !');
+          }
+
+      });
+
     } else {
       response.writeHead(404);
       response.end('Not found');
