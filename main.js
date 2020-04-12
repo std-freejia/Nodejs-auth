@@ -5,11 +5,46 @@ var qs = require('querystring');
 var template = require('./lib/template.js');
 var path = require('path');
 var sanitizeHtml = require('sanitize-html');
+var cookie = require('cookie');
+
+
+// 로그인 처리 
+function authIsOwner(request, response){
+  var isOwner = false;
+  var cookies = {}; // 빈 객체 
+  
+  if(request.headers.cookie){  // undefined 는 false와도 같다. 
+    var cookies = cookie.parse(request.headers.cookie);
+  }
+  // DB에서 email, password 찾기 
+  if(cookies.email === '123@gmail.com' && cookies.password === '123' ) {
+    isOwner = true;
+  }
+
+  console.log('isOwner:', cookies);
+
+  return isOwner;
+}
+
+// 로그아웃 처리 함수 
+function authStatusUI(){
+  
+}
+
 
 var app = http.createServer(function(request,response){
     var _url = request.url;
     var queryData = url.parse(_url, true).query;
     var pathname = url.parse(_url, true).pathname;
+
+    // isOwner : 로그인 성공/실패 값
+    var isOwner = authIsOwner(request, response);
+    var authStatusUI =  '<a href="/login">login</a>';
+    
+    if(isOwner){ // 로그인 성공 시, '로그아웃' 버튼 보이도록. 
+      authStatusUI =  '<a href="/logout_process">logout!</a>';
+    }
+    console.log('isOwner:', isOwner);
 
     if(pathname === '/'){
       if(queryData.id === undefined){
@@ -19,7 +54,8 @@ var app = http.createServer(function(request,response){
           var list = template.list(filelist);
           var html = template.HTML(title, list,
             `<h2>${title}</h2>${description}`,
-            `<a href="/create">create</a>`
+            `<a href="/create">create</a>`,
+            authStatusUI
           );
           response.writeHead(200);
           response.end(html);
