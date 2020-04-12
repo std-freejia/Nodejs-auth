@@ -98,6 +98,15 @@ var app = http.createServer(function(request,response){
         });
       }
     } else if(pathname === '/create'){  // 글 쓰기 화면 
+
+      // 접근제어 
+      if(authIsOwner(request, response) === false){
+        // 작성자만 글 생성 가능하므로, 로그인 하라고 말하기.
+        response.end('Login required ! ');
+        return false;  //createServer 의 콜백 function 자체를 종료시킨다. 
+      }
+
+
       fs.readdir('./data', function(error, filelist){
         var title = 'WEB - create';
         var list = template.list(filelist);
@@ -116,6 +125,14 @@ var app = http.createServer(function(request,response){
         response.end(html);
       });
     } else if(pathname === '/create_process'){  // 글 생성 처리 
+
+      // 접근제어 
+      if(authIsOwner(request, response) === false){
+        // 작성자만 글 생성 가능하므로, 로그인 하라고 말하기.
+        response.end('Login required ! ');
+        return false;  //createServer 의 콜백 function 자체를 종료시킨다. 
+      }
+
       var body = '';
       request.on('data', function(data){
           body = body + data;
@@ -130,6 +147,14 @@ var app = http.createServer(function(request,response){
           })
       });
     } else if(pathname === '/update'){  // 수정 
+
+      // 접근제어 
+      if(authIsOwner(request, response) === false){
+        // 작성자만 글 생성 가능하므로, 로그인 하라고 말하기.
+        response.end('Login required ! ');
+        return false;  //createServer 의 콜백 function 자체를 종료시킨다. 
+      }
+
       fs.readdir('./data', function(error, filelist){
         var filteredId = path.parse(queryData.id).base;
         fs.readFile(`data/${filteredId}`, 'utf8', function(err, description){
@@ -173,6 +198,14 @@ var app = http.createServer(function(request,response){
           });
       });
     } else if(pathname === '/delete_process'){  // 삭제 처리 
+
+      // 접근제어 
+      if(authIsOwner(request, response) === false){
+        // 작성자만 글 생성 가능하므로, 로그인 하라고 말하기.
+        response.end('Login required ! ');
+        return false;  //createServer 의 콜백 function 자체를 종료시킨다. 
+      }
+
       var body = '';
       request.on('data', function(data){
           body = body + data;
@@ -215,7 +248,7 @@ var app = http.createServer(function(request,response){
       request.on('end', function(){
           var post = qs.parse(body);
 
-          if(post.email === '123@gmail.com' && post.password === '123' ) {
+          if(post.email === '123@gmail.com' && post.password === '123' ) { // 로그인 성공 처리.
             console.log('login success')
             response.writeHead(302, {
               'Set-Cookie':[
@@ -226,12 +259,10 @@ var app = http.createServer(function(request,response){
               Location: `/`
             })
             response.end();
-          }else{
-            // 로그인 실패 
+          }else{ // 로그인 실패 처리             
             console.log('login failed');
             response.end('login failed !');
           }
-
       });
 
     } else if(pathname == "/logout_process"){ // 로그아웃 처리 - 쿠키삭제 
